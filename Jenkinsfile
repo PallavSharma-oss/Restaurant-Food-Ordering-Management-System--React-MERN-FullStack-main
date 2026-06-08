@@ -18,7 +18,7 @@ stages {
 
     stage('Install Dependencies') {
         steps {
-            sh 'npm install'
+            sh 'npm install --legacy-peer-deps --fetch-timeout=600000'
         }
     }
 
