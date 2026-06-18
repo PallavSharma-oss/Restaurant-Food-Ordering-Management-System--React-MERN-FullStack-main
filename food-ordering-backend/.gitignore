@@ -24,3 +24,24 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Node.js
+node_modules/
+dist/
+
+# Environment
+.env
+.env.*
+
+# Terraform
+Terraform folder/.terraform/
+Terraform folder/*.tfstate
+Terraform folder/*.tfstate.*
+Terraform folder/*.tfvars
+Terraform folder/*.pem
+
+# Private Keys
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db
