@@ -4,6 +4,7 @@ pipeline {
     environment {
         FRONTEND_IP = "13.232.243.79"
         BACKEND_IP  = "15.206.81.86"
+        REPO_PATH   = "~/Restaurant-Food-Ordering-Management-System--React-MERN-FullStack-main"
     }
 
     stages {
@@ -25,28 +26,27 @@ pipeline {
                         usernameVariable: 'SSH_USER'
                     )
                 ]) {
+
                     sh """
-                    ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \$SSH_USER@${BACKEND_IP} << 'EOF'
+ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \$SSH_USER@${BACKEND_IP} '
+cd ${REPO_PATH}
 
-                    cd ~/Restaurant-Food-Ordering-Management-System--React-MERN-FullStack-main
+git pull
 
-                    git pull
+cd food-ordering-backend
 
-                    cd food-ordering-backend
+sudo docker rm -f backend || true
 
-                    sudo docker rm -f backend || true
+sudo docker build -t food-ordering-backend .
 
-                    sudo docker build -t food-ordering-backend .
-
-                    sudo docker run -d \
-                      --name backend \
-                      --restart always \
-                      -p 5000:5000 \
-                      --env-file .env \
-                      food-ordering-backend
-
-                    EOF
-                    """
+sudo docker run -d \
+    --name backend \
+    --restart always \
+    -p 5000:5000 \
+    --env-file .env \
+    food-ordering-backend
+'
+"""
                 }
             }
         }
@@ -60,39 +60,43 @@ pipeline {
                         usernameVariable: 'SSH_USER'
                     )
                 ]) {
+
                     sh """
-                    ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \$SSH_USER@${FRONTEND_IP} << 'EOF'
+ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \$SSH_USER@${FRONTEND_IP} '
+cd ${REPO_PATH}
 
-                    cd ~/Restaurant-Food-Ordering-Management-System--React-MERN-FullStack-main
+git pull
 
-                    git pull
+cd food-ordering-frontend
 
-                    cd food-ordering-frontend
+sudo docker rm -f frontend || true
 
-                    sudo docker rm -f frontend || true
+sudo docker build -t food-odering-frontend .
 
-                    sudo docker build -t food-odering-frontend .
-
-                    sudo docker run -d \
-                      --name frontend \
-                      --restart always \
-                      -p 80:80 \
-                      food-odering-frontend
-
-                    EOF
-                    """
+sudo docker run -d \
+    --name frontend \
+    --restart always \
+    -p 80:80 \
+    food-odering-frontend
+'
+"""
                 }
             }
         }
+
     }
 
     post {
         success {
-            echo "Deployment Successful!"
+            echo "====================================="
+            echo "Deployment Completed Successfully"
+            echo "====================================="
         }
 
         failure {
-            echo "Deployment Failed!"
+            echo "====================================="
+            echo "Deployment Failed"
+            echo "====================================="
         }
     }
 }
