@@ -158,7 +158,7 @@ pipeline {
 
         always {
 
-            cleanWs()
+            echo "Pipeline Finished"
 
         }
     }
