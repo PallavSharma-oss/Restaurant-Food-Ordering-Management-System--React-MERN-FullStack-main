@@ -4,21 +4,83 @@ pipeline {
     environment {
         FRONTEND_IP = "13.232.243.79"
         BACKEND_IP  = "15.206.81.86"
-        REPO_PATH   = "~/Restaurant-Food-Ordering-Management-System--React-MERN-FullStack-main"
+
+        REPO_URL  = "https://github.com/PallavSharma-oss/Restaurant-Food-Ordering-Management-System--React-MERN-FullStack-main.git"
+        REPO_PATH = "~/Restaurant-Food-Ordering-Management-System--React-MERN-FullStack-main"
+
+        SCANNER_HOME = tool 'SonarScanner'
     }
 
     stages {
 
-        stage('Checkout') {
+        stage('Build') {
+
             steps {
+
+                echo "========== BUILD STAGE =========="
+
                 git branch: 'main',
                     credentialsId: 'github-creds',
-                    url: 'https://github.com/PallavSharma-oss/Restaurant-Food-Ordering-Management-System--React-MERN-FullStack-main.git'
+                    url: "${REPO_URL}"
+
+                sh '''
+                echo "Building Backend Docker Image..."
+
+                cd food-ordering-backend
+
+                docker build -t food-ordering-backend .
+
+                cd ..
+
+                echo "Building Frontend Docker Image..."
+
+                cd food-ordering-frontend
+
+                docker build -t food-odering-frontend .
+
+                cd ..
+
+                echo "Build Completed Successfully."
+                '''
             }
         }
 
-        stage('Deploy Backend') {
+        stage('Test') {
+
             steps {
+
+                echo "========== TEST STAGE =========="
+
+                withCredentials([
+                    string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')
+                ]) {
+
+                    sh """
+                    ${SCANNER_HOME}/bin/sonar-scanner \
+                    -Dsonar.token=\$SONAR_TOKEN
+                    """
+                }
+
+                sh '''
+                echo "Checking Docker Images..."
+
+                docker image inspect food-ordering-backend
+
+                docker image inspect food-odering-frontend
+
+                docker images
+
+                echo "Test Stage Completed."
+                '''
+            }
+        }
+
+        stage('Deploy') {
+
+            steps {
+
+                echo "========== DEPLOY STAGE =========="
+
                 withCredentials([
                     sshUserPrivateKey(
                         credentialsId: 'aws-ssh',
@@ -28,75 +90,76 @@ pipeline {
                 ]) {
 
                     sh """
-ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \$SSH_USER@${BACKEND_IP} '
-cd ${REPO_PATH}
+                    echo "Deploying Backend..."
 
-git pull
+                    ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \$SSH_USER@${BACKEND_IP} '
+                        cd ${REPO_PATH}
 
-cd food-ordering-backend
+                        git pull
 
-sudo docker rm -f backend || true
+                        cd food-ordering-backend
 
-sudo docker build -t food-ordering-backend .
+                        sudo docker rm -f backend || true
 
-sudo docker run -d \
-    --name backend \
-    --restart always \
-    -p 5000:5000 \
-    --env-file .env \
-    food-ordering-backend
-'
-"""
-                }
-            }
-        }
+                        sudo docker build -t food-ordering-backend .
 
-        stage('Deploy Frontend') {
-            steps {
-                withCredentials([
-                    sshUserPrivateKey(
-                        credentialsId: 'aws-ssh',
-                        keyFileVariable: 'SSH_KEY',
-                        usernameVariable: 'SSH_USER'
-                    )
-                ]) {
+                        sudo docker run -d \
+                            --name backend \
+                            --restart always \
+                            -p 5000:5000 \
+                            --env-file .env \
+                            food-ordering-backend
+                    '
+                    """
 
                     sh """
-ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \$SSH_USER@${FRONTEND_IP} '
-cd ${REPO_PATH}
+                    echo "Deploying Frontend..."
 
-git pull
+                    ssh -i \$SSH_KEY -o StrictHostKeyChecking=no \$SSH_USER@${FRONTEND_IP} '
+                        cd ${REPO_PATH}
 
-cd food-ordering-frontend
+                        git pull
 
-sudo docker rm -f frontend || true
+                        cd food-ordering-frontend
 
-sudo docker build -t food-odering-frontend .
+                        sudo docker rm -f frontend || true
 
-sudo docker run -d \
-    --name frontend \
-    --restart always \
-    -p 80:80 \
-    food-odering-frontend
-'
-"""
+                        sudo docker build -t food-odering-frontend .
+
+                        sudo docker run -d \
+                            --name frontend \
+                            --restart always \
+                            -p 80:80 \
+                            food-odering-frontend
+                    '
+                    """
                 }
             }
         }
-
     }
 
     post {
+
         success {
-            echo "====================================="
-            echo "Deployment Completed Successfully"
-            echo "====================================="
+
+            echo "=========================================="
+            echo "CI/CD PIPELINE EXECUTED SUCCESSFULLY"
+            echo "=========================================="
+
         }
 
         failure {
-            echo "====================================="
-            echo "Deployment Failed"
-            echo "====================================="
+
+            echo "=========================================="
+            echo "CI/CD PIPELINE FAILED"
+            echo "=========================================="
+
+        }
+
+        always {
+
+            cleanWs()
+
         }
     }
 }
