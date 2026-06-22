@@ -73,7 +73,38 @@ pipeline {
                 echo "Test Stage Completed."
                 '''
             }
+        }```groovy
+stage('Test') {
+
+    steps {
+
+        echo "========== SONARCLOUD ANALYSIS =========="
+
+        withCredentials([
+            string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')
+        ]) {
+
+            sh '''
+            docker run --rm \
+              -e SONAR_TOKEN=$SONAR_TOKEN \
+              -v $PWD:/usr/src \
+              sonarsource/sonar-scanner-cli:latest \
+              sonar-scanner \
+                -Dsonar.token=$SONAR_TOKEN
+            '''
         }
+
+        sh '''
+        echo "Checking Docker Images..."
+
+        docker image inspect food-ordering-backend
+
+        docker image inspect food-odering-frontend
+        '''
+    }
+}
+```
+
 
         stage('Deploy') {
 
