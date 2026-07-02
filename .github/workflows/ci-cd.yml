@@ -69,3 +69,36 @@ jobs:
 
       - name: Verify AWS Identity
         run: aws sts get-caller-identity
+      ####################################
+      # Login to Amazon ECR
+      ####################################
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+              ####################################
+      # Tag Docker Images
+      ####################################
+
+      - name: Tag Frontend Image
+        run: |
+          docker tag restaurant-frontend:latest \
+          857235392758.dkr.ecr.ap-south-1.amazonaws.com/restaurant-frontend:latest
+
+      - name: Tag Backend Image
+        run: |
+          docker tag restaurant-backend:latest \
+          857235392758.dkr.ecr.ap-south-1.amazonaws.com/restaurant-backend:latest
+
+      ####################################
+      # Push Images to Amazon ECR
+      ####################################
+
+      - name: Push Frontend Image
+        run: |
+          docker push 857235392758.dkr.ecr.ap-south-1.amazonaws.com/restaurant-frontend:latest
+
+      - name: Push Backend Image
+        run: |
+          docker push 857235392758.dkr.ecr.ap-south-1.amazonaws.com/restaurant-backend:latest
