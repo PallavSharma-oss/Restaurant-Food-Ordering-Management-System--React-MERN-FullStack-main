@@ -36,3 +36,27 @@ AUTH_UI_IMPLEMENTATION_GUIDE.md
 CLERK_AUTH_COMPLETE_IMPLEMENTATION_GUIDE.md
 DROPDOWN_TEST_CREDENTIALS_DOCS.md
 HETZNER_VPS_MIGRATION_GUIDE.md
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+terraform.tfvars
+*.tfplan
+
+# Terraform Lock File
+!.terraform.lock.hcl
+
+# Environment Files
+.env
+.env.*
+
+# Node Modules
+**/node_modules/
+
+# Build Files
+dist/
+build/
+
+# Logs
+*.log
