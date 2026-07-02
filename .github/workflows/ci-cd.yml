@@ -8,9 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  checkout:
-
-    name: Checkout Repository
+  build:
 
     runs-on: ubuntu-latest
 
@@ -19,7 +17,20 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Verify Repository
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Verify Node
         run: |
-          pwd
-          ls -la
+          node -v
+          npm -v
+
+      - name: Install Frontend Dependencies
+        working-directory: food-ordering-frontend
+        run: npm install
+
+      - name: Install Backend Dependencies
+        working-directory: food-ordering-backend
+        run: npm install
