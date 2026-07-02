@@ -7,6 +7,10 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -52,3 +56,16 @@ jobs:
 
       - name: Verify Docker Images
         run: docker images
+
+      ####################################
+      # Configure AWS Credentials (OIDC)
+      ####################################
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::857235392758:role/github-actions-ecs-role
+          aws-region: ap-south-1
+
+      - name: Verify AWS Identity
+        run: aws sts get-caller-identity
