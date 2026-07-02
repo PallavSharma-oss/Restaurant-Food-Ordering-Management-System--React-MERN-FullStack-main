@@ -22,15 +22,31 @@ jobs:
         with:
           node-version: 20
 
-      - name: Verify Node
+      - name: Verify Node.js
         run: |
           node -v
           npm -v
+
+      ###############################
+      # Frontend
+      ###############################
 
       - name: Install Frontend Dependencies
         working-directory: food-ordering-frontend
         run: npm install
 
+      - name: Build Frontend
+        working-directory: food-ordering-frontend
+        run: npm run build
+
+      ###############################
+      # Backend
+      ###############################
+
       - name: Install Backend Dependencies
         working-directory: food-ordering-backend
         run: npm install
+
+      - name: Build Backend
+        working-directory: food-ordering-backend
+        run: npm run build
